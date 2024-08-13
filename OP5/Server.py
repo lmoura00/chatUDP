@@ -30,7 +30,7 @@ while True:
             expected_seq_num = 1 - expected_seq_num  # Alterna entre 0 e 1
         else:
             print(f"Mensagem duplicada recebida: {message} de {addr}")
-            ack_msg = f"ACK{1 - seq_num}"  # Reenvia o último ACK
+            ack_msg = f"ACK{seq_num}"  # Reenvia o ACK para o seq_num recebido
             server_socket.sendto(ack_msg.encode(), addr)
     else:
         print("Erro de checksum, descartando pacote.")
