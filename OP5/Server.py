@@ -4,7 +4,7 @@ import hashlib
 BUFFER_SIZE = 1024
 
 def compute_checksum(data):
-    """Computa o checksum para os dados dados."""
+    """Computa o checksum para os dados."""
     return hashlib.md5(data).hexdigest()
 
 # Configuração do servidor (IP e Porta)

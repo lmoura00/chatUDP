@@ -11,49 +11,42 @@ def compute_checksum(data):
     """Computa o checksum para os dados."""
     return hashlib.md5(data).hexdigest()
 
-def receive_messages():
+def receive_ack():
+    """Recebe o ACK e verifica se é o correto."""
+    global ack_received, ack_num
     while True:
         try:
             message, _ = client_socket.recvfrom(BUFFER_SIZE)
             ack_num = int(message.decode()[3])
             if ack_num == seq_num:
-                listbox.insert(END, "ACK recebido corretamente!")
-                break  # Sair do loop de recebimento de mensagens
-            else:
-                listbox.insert(END, "ACK incorreto, aguardando retransmissão...")
+                ack_received = True
+                break
         except:
-            print("Erro ao receber mensagem.")
             break
 
 def send_message():
-    global seq_num, timeout_flag
+    global seq_num, ack_received
     message = entry.get()
     checksum = compute_checksum(message.encode())
     packet = f"{checksum}|{seq_num}|{message}"
     
-    while True:
+    ack_received = False
+    while not ack_received:
         client_socket.sendto(packet.encode(), server_address)
         listbox.insert(END, f"Enviado: {message}")
         start_time = time.time()
         
         # Thread para receber ACK
-        ack_thread = threading.Thread(target=receive_messages)
+        ack_thread = threading.Thread(target=receive_ack)
         ack_thread.start()
 
-        # Espera até o timeout ou receber ACK correto
-        while time.time() - start_time < TIMEOUT:
-            if ack_thread.is_alive():
-                continue
-            else:
-                break
-        else:
-            listbox.insert(END, "Timeout, retransmitindo pacote.")
-            continue  # Tenta enviar novamente em caso de timeout
+        # Espera até o timeout ou receber o ACK correto
+        ack_thread.join(timeout=TIMEOUT)
         
-        ack_thread.join()
-        seq_num = 1 - seq_num  # Alterna entre 0 e 1
-        break  # Sai do loop após enviar com sucesso
+        if not ack_received:
+            listbox.insert(END, "Timeout, retransmitindo pacote.")
     
+    seq_num = 1 - seq_num  # Alterna entre 0 e 1
     entry.delete(0, END)
 
 def on_close():
@@ -62,14 +55,15 @@ def on_close():
 
 # Configuração do Cliente
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-client_socket.bind(("127.0.0.1", ))  # Substitua pela porta do cliente correspondente
-server_address = ("192.168.0.21", 2468)  # Substitua pelo IP do servidor
+client_socket.bind(("0.0.0.0", 54321))  # Substitua pela porta do cliente correspondente
+server_address = ("192.168.0.21", 12345)  # Substitua pelo IP do servidor
 seq_num = 0  # Número de sequência inicial
-timeout_flag = False
+ack_received = False
+ack_num = -1
 
 # Interface Gráfica
 root = Tk()
-root.title("Cliente 2")
+root.title("Cliente 1")
 
 frame = Frame(root)
 scrollbar = Scrollbar(frame)
