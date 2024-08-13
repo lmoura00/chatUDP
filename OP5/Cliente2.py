@@ -55,15 +55,15 @@ def on_close():
 
 # Configuração do Cliente
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-
+client_socket.bind(("0.0.0.0", 54321))  # Porta do Cliente 1
+server_address = ("192.168.0.19", 12345)  # Substitua pelo IP do servidor
 seq_num = 0  # Número de sequência inicial
 ack_received = False
 ack_num = -1
 
 # Interface Gráfica
 root = Tk()
-root.title("Cliente 1")
+root.title("Cliente 2")
 
 frame = Frame(root)
 scrollbar = Scrollbar(frame)
