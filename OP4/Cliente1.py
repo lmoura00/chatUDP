@@ -24,8 +24,8 @@ def on_close():
 
 # Configuração do Cliente 1
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-client_socket.bind(("127.0.0.1", 54321))
-server_address = ("127.0.0.1", 12345)
+client_socket.bind(("0.0.0.0", 54321))  # Permitir que o cliente se conecte de qualquer interface
+server_address = ("192.168.0.19", 12345) # Substitua "192.168.0.19" pelo IP do servidor
 BUFFER_SIZE = 1024
 
 # Interface Gráfica
