@@ -24,13 +24,14 @@ while True:
     
     if received_checksum == computed_checksum:
         if seq_num == expected_seq_num:
-            print(f"Mensagem recebida corretamente: {message} de {addr}")
+            if message.strip():
+                print(f"Mensagem recebida corretamente: {message} de {addr}")
             ack_msg = f"ACK{seq_num}"
             server_socket.sendto(ack_msg.encode(), addr)
             expected_seq_num = 1 - expected_seq_num  # Alterna entre 0 e 1
         else:
             print(f"Mensagem duplicada recebida: {message} de {addr}")
-            ack_msg = f"ACK{seq_num}"  # Reenvia o ACK para o seq_num recebido
+            ack_msg = f"ACK{1 - expected_seq_num}"  # Reenvia o ACK para o último seq_num confirmado
             server_socket.sendto(ack_msg.encode(), addr)
     else:
         print("Erro de checksum, descartando pacote.")

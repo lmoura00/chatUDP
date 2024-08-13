@@ -17,10 +17,13 @@ def receive_ack():
     while True:
         try:
             message, _ = client_socket.recvfrom(BUFFER_SIZE)
-            ack_num = int(message.decode()[3])
-            if ack_num == seq_num:
-                ack_received = True
-                break
+            if message.decode().startswith("ACK"):
+                ack_num = int(message.decode()[3])
+                if ack_num == seq_num:
+                    ack_received = True
+                    break
+            else:
+                listbox.insert(END, f"Recebido: {message.decode()}")
         except:
             break
 
@@ -34,9 +37,8 @@ def send_message():
     while not ack_received:
         client_socket.sendto(packet.encode(), server_address)
         listbox.insert(END, f"Enviado: {message}")
-        start_time = time.time()
         
-        # Thread para receber ACK
+        # Thread para receber ACK e mensagens
         ack_thread = threading.Thread(target=receive_ack)
         ack_thread.start()
 
@@ -48,6 +50,16 @@ def send_message():
     
     seq_num = 1 - seq_num  # Alterna entre 0 e 1
     entry.delete(0, END)
+
+def receive_messages():
+    """Recebe mensagens continuamente e exibe no Tkinter."""
+    while True:
+        try:
+            message, _ = client_socket.recvfrom(BUFFER_SIZE)
+            if not message.decode().startswith("ACK"):
+                listbox.insert(END, f"Recebido: {message.decode()}")
+        except:
+            break
 
 def on_close():
     client_socket.close()
@@ -78,6 +90,11 @@ entry.pack(pady=10)
 
 send_button = Button(root, text="Enviar", command=send_message)
 send_button.pack()
+
+# Thread para receber mensagens continuamente
+receive_thread = threading.Thread(target=receive_messages)
+receive_thread.daemon = True  # Permite fechar o Tkinter corretamente
+receive_thread.start()
 
 root.protocol("WM_DELETE_WINDOW", on_close)
 root.mainloop()
